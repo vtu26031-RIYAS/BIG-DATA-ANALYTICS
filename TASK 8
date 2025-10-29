@@ -1,0 +1,54 @@
+Task:8       
+
+Input:
+SHOW DATABASES;
+USE database_name;
+SHOW TABLES;
+CREATE DATABASE new_database;
+CREATE TABLE my_table (
+    id INT,
+    name STRING,
+    age INT
+);
+LOAD DATA LOCAL INPATH '/path/to/datafile.csv' OVERWRITE INTO TABLE my_table;
+SELECT * FROM my_table WHERE age > 25;
+INSERT INTO TABLE my_table VALUES (1, 'John', 30);
+DESCRIBE my_table;
+DROP TABLE my_table;
+Steps:
+Hive Basic Commands: 
+Show Databases: SHOW DATABASES; 
+Use Database: 
+USE database_name; Show Tables: 
+SHOW TABLES; 
+Create a Database: 
+CREATE DATABASE new_database; 
+
+Create a Table: 
+CREATE TABLE my_table ( 
+    id INT, 
+    name STRING,     age INT 
+); 
+Load Data into a Table: 
+LOAD DATA LOCAL INPATH '/path/to/datafile.csv' OVERWRITE INTO TABLE my_table; Query Data: 
+SELECT * FROM my_table WHERE age > 25; Insert Data into a Table: 
+INSERT INTO TABLE my_table VALUES (1, 'John', 30); Describe Table: 
+DROP TABLE my_table;
+Output:default
+sales_db
+employee_db
+student_db
+OK
+my_table
+student_details
+course_info
+OK
+OK
+OK
+1   John   30
+2   Alice  28
+OK
+id      int
+name    string
+age     int
+OK
