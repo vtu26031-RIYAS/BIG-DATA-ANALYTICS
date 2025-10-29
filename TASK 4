@@ -1,0 +1,124 @@
+Task:4            
+Input:
+css
+CopyEdit
+A,0,0,1
+A,0,1,2
+A,1,0,3
+A,1,1,4
+B,0,0,5
+B,0,1,6
+B,1,0,7
+B,1,1,8
+
+MatrixMapper.java
+import java.io.IOException;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
+
+public class MatrixMapper extends Mapper<Object, Text, Text, Text> {
+
+    private int m = 2; // rows in A
+    private int n = 2; // cols in A / rows in B
+    private int p = 2; // cols in B
+
+    public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+        String[] parts = value.toString().split(",");
+        String matrixName = parts[0];
+        int row = Integer.parseInt(parts[1]);
+        int col = Integer.parseInt(parts[2]);
+        double val = Double.parseDouble(parts[3]);
+
+        if (matrixName.equals("A")) {
+            for (int j = 0; j < p; j++) {
+                context.write(new Text(row + "," + j), new Text("A," + col + "," + val));
+            }
+        } else if (matrixName.equals("B")) {
+            for (int i = 0; i < m; i++) {
+                context.write(new Text(i + "," + col), new Text("B," + row + "," + val));
+            }
+        }
+    }
+}
+MatrixReducer.java
+java
+CopyEdit
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Reducer;
+
+public class MatrixReducer extends Reducer<Text, Text, Text, Text> {
+
+    public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+        Map<Integer, Double> aMap = new HashMap<>();
+        Map<Integer, Double> bMap = new HashMap<>();
+
+        for (Text val : values) {
+            String[] parts = val.toString().split(",");
+            String matrixName = parts[0];
+            int k = Integer.parseInt(parts[1]);
+            double v = Double.parseDouble(parts[2]);
+
+            if (matrixName.equals("A")) {
+                aMap.put(k, v);
+            } else {
+                bMap.put(k, v);
+            }
+        }
+
+        double sum = 0.0;
+        for (int k : aMap.keySet()) {
+            if (bMap.containsKey(k)) {
+                sum += aMap.get(k) * bMap.get(k);
+            }
+        }
+
+        context.write(key, new Text(Double.toString(sum)));
+    }
+}
+MatrixMultiplicationDriver.java
+java
+CopyEdit
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class MatrixMultiplicationDriver {
+    public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
+            System.err.println("Usage: MatrixMultiplicationDriver <input path> <output path>");
+            System.exit(-1);
+        }
+
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "Matrix Multiplication");
+
+        job.setJarByClass(MatrixMultiplicationDriver.class);
+        job.setMapperClass(MatrixMapper.class);
+        job.setReducerClass(MatrixReducer.class);
+
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+Output:
+If A=[1234]A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}A=[1324] and
+B=[5678]B = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix}B=[5768]:
+Output in HDFS:
+CopyEdit
+0,0    19.0
+0,1    22.0
+1,0    43.0
+1,1    50.0
