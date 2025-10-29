@@ -1,0 +1,49 @@
+task:5.1                   
+Scala Program:
+Execute in interpreter mode:
+scala> val data=sc.textFile("sparkdata.txt");
+scala> data.collect;
+scala> val splitdata = data.flatMap(line => line.split(""));
+scala> splitdata.collect;
+scala> val mapdata = splitdata.map(word => (word,1));
+scala> mapdata.collect;
+scala> val reducedata = mapdata.reduceByKey(+);
+scala> reducedata.collect; 
+task:5.2
+Program:
+import findspark
+findspark.init()
+from pyspark.sql import SparkSession
+spark = SparkSession.builder\
+ .master("local")\
+ .appName('Firstprogram')\
+ .getOrCreate()
+sc=spark.sparkContext
+text_file = sc.textFile("firstprogram.txt")
+counts = text_file.flatMap(lambda line: line.split(" ")) \
+ .map(lambda word: (word, 1)) \
+ .reduceByKey(lambda x, y: x + y)
+output = counts.collect()
+for (word, count) in output:
+ print("%s: %i" % (word, count))
+sc.stop()
+spark.stop()
+File Name: firstprogram.txt
+Chennai formerly known as Madras, is the capital city of Tamil Nadu, the southernmost Indian
+state.
+Output:
+Chennai: 1
+Formerly: 1
+Known: 1
+as: 1
+Madras: 1
+Is: 1
+the: 2
+Capital: 1
+City: 1
+Of: 1
+Tamil: 1
+Nadu: 1
+southernmost: 1
+Indian: 1
+state.: 1
