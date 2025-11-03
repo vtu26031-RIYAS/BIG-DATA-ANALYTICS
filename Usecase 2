@@ -1,0 +1,22 @@
+IMPLEMENTATION:
+class WeatherAnalysis(MRJob):
+    def mapper(self, _, line):
+        try:
+            fields = line.strip().split(',')
+            if len(fields) == 8:
+                year = fields[0].split('-')[0]
+                temperature = float(fields[1])
+                yield year, temperature
+        except ValueError:
+            pass
+    def reducer(self, year, temperatures):
+        temperatures = list(temperatures)
+        average_temperature = sum(temperatures) / len(temperatures)
+        yield year, round(average_temperature, 2)
+if __name__ == '__main__':
+    WeatherAnalysis.run()
+OUTPUT:
+
+<img width="765" height="461" alt="image" src="https://github.com/user-attachments/assets/3da8dafd-7935-487d-bc78-1569b2aed182" />
+RESULT:
+Thus, Implemented Mapreducer Program to perform data analysis on weather dataset successfully.
